@@ -1,0 +1,30 @@
+# Ambiente virtual e arquivos locais do Python
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Credenciais e configurações locais
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+
+# Arquivos temporários
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Gravações, pacotes e bases locais
+*.mp4
+*.mkv
+*.mov
+*.zip
+*.csv
+
+# Os modelos treinados de models/ fazem parte desta entrega.

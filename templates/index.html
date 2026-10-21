@@ -1,0 +1,263 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <!-- Define os caracteres e permite utilizar acentos -->
+    <meta charset="UTF-8">
+
+    <!-- Faz a página se adaptar a celulares e computadores -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Phishing Detector | Machine Learning</title>
+
+    <!-- Conecta o HTML ao arquivo CSS -->
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Cabeçalho da aplicação -->
+    <header class="cabecalho">
+        <div class="marca">
+            <div class="logo">🛡️</div>
+
+            <div>
+                <h1>Phishing Detector</h1>
+                <p>Machine Learning Security</p>
+            </div>
+        </div>
+
+        <span class="status">● Sistema ativo</span>
+    </header>
+
+    <!-- main representa o conteúdo principal da página -->
+    <main class="container">
+
+        <section class="introducao">
+            <span class="etiqueta">ANÁLISE DE SEGURANÇA</span>
+
+            <h2>Analise URLs suspeitas</h2>
+
+            <p>
+                Utilize modelos de Machine Learning para
+                identificar padrões associados a ataques de phishing.
+            </p>
+        </section>
+
+        <!-- Formulário enviado ao Flask usando HTTP POST -->
+        <section class="painel">
+            <form method="POST" action="/">
+
+                <div class="campo">
+                    <label for="url">Endereço da URL</label>
+
+                    <!-- name="url" corresponde ao request.form.get("url") -->
+                    <input
+                        type="text"
+                        id="url"
+                        name="url"
+                        placeholder="https://www.exemplo.com/login"
+                        value="{{ request.form.get('url', '') }}"
+                        required
+                    >
+
+                    <small>
+                        Informe uma URL completa, iniciando
+                        com http:// ou https://
+                    </small>
+                </div>
+
+                <div class="campo">
+                    <label for="modelo">
+                        Modelo de classificação
+                    </label>
+
+                    <!--
+                    Jinja2: o Flask envia a lista de modelos.
+                    O for cria uma opção para cada classificador.
+                    -->
+                    <select id="modelo" name="modelo">
+
+                        <!-- Opções individuais dos quatro classificadores -->
+                        {% for modelo in modelos %}
+
+                            <option value="{{ modelo }}"
+                                {% if request.form.get('modelo', 'MLP') == modelo %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ modelo }}
+                            </option>
+
+                        {% endfor %}
+
+                        <!-- Opção para executar os quatro classificadores -->
+                        <option value="Todos"
+                            {% if request.form.get('modelo') == 'Todos' %}
+                                selected
+                            {% endif %}
+                        >
+                            Comparar todos os modelos
+                        </option>
+
+                    </select>
+                </div>
+
+                <button type="submit" class="botao-analisar">
+                    🔍 Analisar URL
+                </button>
+
+            </form>
+        </section>
+
+        <!--
+        Este bloco aparece apenas quando existe um erro.
+        O valor de "erro" vem do app.py.
+        -->
+        {% if erro %}
+            <div class="mensagem-erro">
+                <strong>Não foi possível analisar a URL.</strong>
+                <p>{{ erro }}</p>
+            </div>
+        {% endif %}
+
+        <!--
+        Jinja2: resultado só aparece após uma classificação.
+        O Flask fornece resultado.classe, resultado.url
+        e resultado.modelo.
+        -->
+        {% if resultado %}
+
+            <!-- Define uma classe CSS diferente para cada resultado -->
+            <section class="resultado
+                {% if resultado.classe == 'Phishing' %}
+                    resultado-perigo
+                {% else %}
+                    resultado-legitimo
+                {% endif %}
+            ">
+
+                <div class="resultado-topo">
+
+                    {% if resultado.classe == 'Phishing' %}
+                        <span class="icone-resultado">⚠️</span>
+                        <div>
+                            <h3>Possível phishing detectado</h3>
+                            <p>
+                                O modelo identificou padrões
+                                associados a URLs de phishing.
+                            </p>
+                        </div>
+                    {% else %}
+                        <span class="icone-resultado">✓</span>
+                        <div>
+                            <h3>URL classificada como legítima</h3>
+                            <p>
+                                O modelo identificou padrões
+                                associados a URLs legítimas.
+                            </p>
+                        </div>
+                    {% endif %}
+
+                </div>
+
+                <div class="detalhes">
+
+                    <div>
+                        <span>URL analisada</span>
+                        <strong>{{ resultado.url }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Classificador utilizado</span>
+                        <strong>{{ resultado.modelo }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Classificação</span>
+                        <strong>{{ resultado.classe }}</strong>
+                    </div>
+
+                </div>
+
+                <p class="aviso">
+                    Esta classificação é uma estimativa estatística.
+                    O sistema analisa características da URL e não
+                    garante que um site seja seguro ou malicioso.
+                </p>
+
+            </section>
+
+        {% endif %}
+
+                <!-- NOVO BLOCO: comparação dos quatro modelos -->
+        {% if resultados_comparacao %}
+
+            <section class="comparison-section">
+
+                <h2>Comparação dos classificadores</h2>
+
+                <div class="comparison-grid">
+
+                    {% for item in resultados_comparacao %}
+
+                        <div class="comparison-card">
+
+                            <h3>{{ item.modelo }}</h3>
+
+                            <p class="comparison-result
+                                {% if item.classe == 'Phishing' %}
+                                    comparison-phishing
+                                {% else %}
+                                    comparison-legitimate
+                                {% endif %}
+                            ">
+                                {{ item.classe }}
+                            </p>
+
+                            <p class="comparison-time">
+                                Tempo de previsão:
+                                {{ item.tempo_ms }} ms
+                            </p>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+        {% endif %}
+
+        <!-- Informações técnicas sobre o projeto -->
+        <section class="informacoes">
+
+            <div class="info-card">
+                <strong>4</strong>
+                <span>Classificadores</span>
+            </div>
+
+            <div class="info-card">
+                <strong>16</strong>
+                <span>Características lexicais</span>
+            </div>
+
+            <div class="info-card">
+                <strong>ML</strong>
+                <span>Aprendizado supervisionado</span>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="rodape">
+        Projeto acadêmico de Sistemas Inteligentes
+        • Detecção de Phishing com Machine Learning
+    </footer>
+
+</body>
+</html>
